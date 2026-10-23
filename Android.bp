@@ -279,6 +279,7 @@ toybox_symlinks = [
     "dmesg",
     "dos2unix",
     "du",
+    "eject",
     "echo",
     "egrep",
     "env",

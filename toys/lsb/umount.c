@@ -7,6 +7,7 @@
  * Note: -n (/etc/mtab) is obsolete, /proc/mounts replaced it. Neither chroot
  * nor per-process mount namespaces can work sanely with mtab. The kernel
  * tracks mount points now, a userspace application can't do so anymore.
+ */
 
 USE_UMOUNT(NEWTOY(umount, "cndDflrat*v[!na]", TOYFLAG_BIN|TOYFLAG_STAYROOT))
 
@@ -36,6 +37,78 @@ GLOBALS(
 
   char *types;
 )
+
+// Create 2 blacklists, one for device, one for directory.
+// These lists are for blocking certain devices from detaching loopback
+// when umount, which they are not supposed to detach
+static int loopback_detach_blacklist_dev(const char *dev)
+{
+    if (!dev) return 0;
+
+    const char *blacklist[] = {
+        // system
+        "/dev/block/by-name/system_a",
+        "/dev/block/by-name/system_b",
+        "/dev/block/bootdevice/by-name/system_a",
+        "/dev/block/bootdevice/by-name/system_b",
+        //vendor
+        "/dev/block/by-name/vendor_a",
+        "/dev/block/by-name/vendor_b",
+        "/dev/block/bootdevice/by-name/vendor_a",
+        "/dev/block/bootdevice/by-name/vendor_b",
+        //product
+        "/dev/block/by-name/product_a",
+        "/dev/block/by-name/product_b",
+        "/dev/block/bootdevice/by-name/product_a",
+        "/dev/block/bootdevice/by-name/product_b",
+        //userdata
+        "/dev/block/by-name/userdata",
+        "/dev/block/bootdevice/by-name/userdata",
+        NULL  // sentinel
+    };
+
+    for (const char **s = blacklist; *s; s++)
+        if (!strcmp(dev, *s)) return 1;
+
+    return 0;
+}
+
+static int loopback_detach_blacklist_dir(const char *dir)
+{
+    if (!dir) return 0;
+
+    const char *blacklist[] = {
+        //system
+        "/mnt/system",
+        "/system",
+        //vendor
+        "/mnt/vendor",
+        "/mnt/system/vendor",
+        "/mnt/system/system/vendor",
+        "/vendor",
+        //product
+        "/mnt/product",
+        "/mnt/system/product",
+        "/mnt/system/system/product",
+        "/product",
+        NULL  // sentinel
+    };
+
+    size_t dir_len = strlen(dir);
+    // Check for and ignore a single trailing '/'
+    int has_trailing_slash = (dir_len > 0 && dir[dir_len - 1] == '/');
+    size_t compare_len = has_trailing_slash ? dir_len - 1 : dir_len;
+
+    for (const char **s = blacklist; *s; s++) {
+        size_t s_len = strlen(*s);
+        // Compare lengths first, then the strings
+        if (s_len == compare_len && strncmp(dir, *s, compare_len) == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 // TODO (done?)
 //   borrow df code to identify filesystem?
@@ -80,7 +153,9 @@ static void do_umount(char *dir, char *dev, int flags)
 
     // Attempt to disassociate loopback device. This ioctl should be ignored
     // for anything else, because lanana allocated ioctl range 'L' to loopback
-    if (dev && !FLAG(D)) {
+    if (dev && !FLAG(D) &&
+    !(loopback_detach_blacklist_dev(dev) || loopback_detach_blacklist_dir(dir)))
+    {
       int lfd = open(dev, O_RDONLY);
 
       if (lfd != -1) {
