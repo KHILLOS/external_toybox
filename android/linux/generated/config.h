@@ -553,9 +553,9 @@
 #define CFG_UNIX2DOS 1
 #define USE_UNIX2DOS(...) __VA_ARGS__
 #define SKIP_UNIX2DOS(...)
-#define CFG_EJECT 0
-#define USE_EJECT(...)
-#define SKIP_EJECT(...) __VA_ARGS__
+#define CFG_EJECT 1
+#define USE_EJECT(...) __VA_ARGS__
+#define SKIP_EJECT(...)
 #define CFG_FACTOR 0
 #define USE_FACTOR(...)
 #define SKIP_FACTOR(...) __VA_ARGS__

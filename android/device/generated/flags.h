@@ -877,7 +877,7 @@
 #undef FLAG_E
 #endif
 
-// eject   >1stT[!tT]
+// eject >1stT[!tT] >1stT[!tT]
 #undef OPTSTR_eject
 #define OPTSTR_eject ">1stT[!tT]"
 #ifdef CLEANUP_eject
@@ -4821,9 +4821,9 @@
 #ifndef TT
 #define TT this.eject
 #endif
-#define FLAG_T (FORCED_FLAG<<0)
-#define FLAG_t (FORCED_FLAG<<1)
-#define FLAG_s (FORCED_FLAG<<2)
+#define FLAG_T (1LL<<0)
+#define FLAG_t (1LL<<1)
+#define FLAG_s (1LL<<2)
 #endif
 
 #ifdef FOR_env
