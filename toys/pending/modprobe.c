@@ -476,7 +476,12 @@ void modprobe_main(void)
 
     uname(&uts);
     TT.dirs = xzalloc(sizeof(struct arg_list));
-    TT.dirs->arg = xmprintf("/lib/modules/%s", uts.release);
+    // KhillOS: default to /system/lib/modules for Android
+    if (CFG_IS_ANDROID) {
+      TT.dirs->arg = xmprintf("/system/lib/modules/%s", uts.release);
+    } else {
+      TT.dirs->arg = xmprintf("/lib/modules/%s", uts.release);
+    }
   }
 
   // modules.dep processing for dependency check.
