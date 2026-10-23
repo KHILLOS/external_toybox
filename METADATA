@@ -8,8 +8,8 @@ third_party {
   license_type: UNENCUMBERED
   last_upgrade_date {
     year: 2026
-    month: 3
-    day: 9
+    month: 10
+    day: 23
   }
   homepage: "https://landley.net/toybox/"
   identifier {
