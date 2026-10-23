@@ -104,10 +104,9 @@ void modinfo_main(void)
 {
   struct utsname uts;
 
-  // Android (as shipped by Google) currently only has modules on /vendor.
-  // Android does not support multiple sets of modules for different kernels.
+  // KhillOS: default to /system for modules base directory on Android
   if (CFG_IS_ANDROID) {
-   if (!TT.b) TT.b = "/vendor";
+   if (!TT.b) TT.b = "/system";
    if (!TT.k) TT.k = "";
   } else {
    uname(&uts);
